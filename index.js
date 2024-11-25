@@ -17,7 +17,7 @@ app.use(cors())
 app.use('/user', userRoutes);
 app.use('/codes', codesRoutes);
 
-app.use('/api', videoRoutes); // Nota: Aquí se monta la ruta base
+app.use('/api', videoRoutes); // Nota: Aquí se monta la ruta base jeje
 app.use('/api', listRoutes);
 
 
