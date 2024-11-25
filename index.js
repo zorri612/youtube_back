@@ -22,7 +22,7 @@ app.use('/api', listRoutes);
 
 
 app.get('/', (req, res) => {
-    res.send('¡Hola, mundo!');
+    res.send('¡Hola, ya puedes subir tus videos a Youtube Fake!');
 });
 app.get('/user/login', (req, res) => {
     res.send('¡Hola, login!');
