@@ -109,7 +109,7 @@ router.get('/list-videos/:userId', async (req, res) => {
 });
 
 // Endpoint para listar todos los videos del S3
-router.get('/list-all-videos', async (req, res) => {
+/*router.get('/list-all-videos', async (req, res) => {
     try {
         const params = {
             Bucket: process.env.AWS_BUCKET_NAME,
@@ -148,6 +148,55 @@ router.get('/list-all-videos', async (req, res) => {
     }
 });
 
+*/
 
+router.get('/list-videos/:userId', async (req, res) => {
+    const { userId } = req.params;
+  
+    try {
+      // Obtener la lista de videos en el bucket para el usuario
+      const s3Params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Prefix: `${userId}/`, // Carpeta específica del usuario
+      };
+  
+      const s3Response = await s3.listObjectsV2(s3Params).promise();
+  
+      // Verificar si hay contenido en la carpeta
+      if (!s3Response.Contents || s3Response.Contents.length === 0) {
+        return res.status(404).json({ message: 'No se encontraron videos para este usuario.' });
+      }
+  
+      // Validar existencia de cada archivo (filtrar los que realmente existen)
+      const validVideos = [];
+      for (const file of s3Response.Contents) {
+        const headParams = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: file.Key,
+        };
+  
+        try {
+          await s3.headObject(headParams).promise(); // Verificar si el archivo existe
+          validVideos.push({
+            key: file.Key,
+            url: `${process.env.AWS_CLOUDFRONT_URL}/${file.Key}`, // URL del video
+            name: file.Key.split('/').pop(), // Extraer el nombre del archivo
+          });
+        } catch (error) {
+          console.log(`Archivo no encontrado en tu S3: ${file.Key}`);
+        }
+      }
+  
+      if (validVideos.length === 0) {
+        return res.status(404).json({ message: 'No se encontraron videos válidos para este usuario.' });
+      }
+  
+      return res.status(200).json({ videos: validVideos });
+    } catch (error) {
+      console.error('Error al listar los videos:', error);
+      return res.status(500).json({ message: 'Error al listar los videos.' });
+    }
+  });
+  
 
 module.exports = router;
